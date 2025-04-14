@@ -1,6 +1,6 @@
-# YouTube Transcript Extractor
+# Youtube Transcript ADK
 
-YouTubeビデオから字幕（トランスクリプト）を抽出するPythonモジュール。
+Google Agent Development Kit (ADK)を通じて、またはCLIから指定のYoutube動画を文字起こしするツール
 
 ## 機能
 
@@ -89,31 +89,6 @@ python test_transcript.py https://www.youtube.com/watch?v=VIDEO_ID -t
 - `-o, --output`: 出力ファイルパス
 - `-s, --timestamps`: 時間情報を含める
 - `--segment`: 指定した秒数ごとにセグメント化する（このオプションを指定すると自動的にタイムスタンプも有効になります）
-
-### プログラムから
-
-コア機能を他のPythonプログラムから利用することもできます：
-
-```python
-from adk.transcriptor import YouTubeTranscriptor
-
-# 字幕を取得
-transcript = YouTubeTranscriptor.get_transcript('https://www.youtube.com/watch?v=VIDEO_ID', language='ja')
-
-# テキストのみを抽出
-text = YouTubeTranscriptor.get_transcript_text(transcript)
-print(text)
-
-# タイムスタンプ付きテキストを取得
-text_with_timestamps = YouTubeTranscriptor.get_transcript_text(transcript, include_timestamps=True)
-print(text_with_timestamps)
-
-# ファイルに保存
-YouTubeTranscriptor.save_transcript_to_file(transcript, 'output.json')
-
-# セグメント化
-segments = YouTubeTranscriptor.get_transcript_by_segments('https://www.youtube.com/watch?v=VIDEO_ID', segment_length=5)
-```
 
 ## プロジェクト構造
 
