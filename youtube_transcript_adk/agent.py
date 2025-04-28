@@ -1,12 +1,12 @@
 """
-Google Agent Development Kit (ADK)を使用したYouTube字幕抽出エージェント
+Google Agent Development Kit (ADK)を使用したYouTube字幕抽出・検索エージェント
 
-このモジュールはGoogle ADKを使用して、YouTubeの動画から字幕を抽出するツールを提供するエージェントを実装します。
 """
 from typing import Dict, List, Any, Optional
 
 from google.adk.agents import Agent
 from .transcriptor import YouTubeTranscriptor  # 同じディレクトリ内のtranscriptorをインポート
+from .searcher import YouTubeSearch  # 検索機能をインポート
 
 def get_transcript(url: str, language: str = "ja", translate: bool = False) -> Dict[str, Any]:
     """
@@ -91,11 +91,53 @@ def get_transcript_by_segments(url: str, language: str = "ja", segment_length: i
         }
 
 
+# 検索ツールを追加
+def search_youtube_videos(query: str, max_results: int = 10, order: str = "relevance", 
+                        caption_filter: str = "closedCaption") -> Dict[str, Any]:
+    """
+    YouTubeビデオを検索するツール
+    
+    Args:
+        query (str): 検索キーワード
+        max_results (int): 取得する結果の最大数（デフォルト: 10）
+        order (str): 並べ替え方法（デフォルト: 'relevance'）
+        caption_filter (str): 字幕フィルター（'closedCaption'=字幕あり, 'none'=字幕なし, 'any'=すべて）
+    
+    Returns:
+        Dict[str, Any]: ステータスと検索結果を含む辞書
+    """
+    try:
+        # YouTubeSearch クラスのインスタンス化
+        youtube_search = YouTubeSearch()
+        
+        # 検索実行
+        videos, next_page_token = youtube_search.search_videos(
+            query=query,
+            max_results=max_results,
+            order=order,
+            caption_filter=caption_filter
+        )
+        
+        # 一部の結果のみを返す（全部は多すぎる可能性があるため）
+        sample_videos = videos[:5] if len(videos) > 5 else videos
+        
+        return {
+            "status": "success",
+            "total_results": len(videos),
+            "sample_videos": sample_videos,
+            "has_more": next_page_token is not None
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error_message": f"動画の検索に失敗しました: {str(e)}"
+        }
+
 # Google ADKエージェントの作成
 root_agent = Agent(
     name="youtube_transcript_agent",
     model="gemini-2.0-flash-exp",
-    description="YouTubeの動画から字幕を抽出し、必要に応じて翻訳するエージェント。",
-    instruction="YouTube動画の字幕を抽出したり、動画URLからの字幕抽出には、言語コードの指定や翻訳機能もあります。",
-    tools=[get_transcript, get_transcript_by_segments],
+    description="YouTubeの動画から字幕を抽出したり、キーワードで動画を検索したりするエージェント。",
+    instruction="YouTube動画の字幕抽出や検索を行います。動画URLからの字幕抽出や、キーワードでの動画検索が可能です。",
+    tools=[get_transcript, get_transcript_by_segments, search_youtube_videos],
 )
